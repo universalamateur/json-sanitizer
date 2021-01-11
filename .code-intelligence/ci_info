@@ -5,6 +5,7 @@
   "details": {
     "javaDetails": {
       "jars": [
+        "gson-2.8.6.jar",
         "target/json-sanitizer-1.2.2-SNAPSHOT-javadoc.jar",
         "target/json-sanitizer-1.2.2-SNAPSHOT-sources.jar",
         "target/json-sanitizer-1.2.2-SNAPSHOT.jar"
