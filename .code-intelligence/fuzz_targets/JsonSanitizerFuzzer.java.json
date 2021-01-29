@@ -6,9 +6,6 @@
       "target/json-sanitizer-1.2.2-SNAPSHOT.jar",
       "gson-2.8.6.jar"
     ],
-    "instrumentationFilters": [
-      "com.google"
-    ],
     "api": {
       "relativePath": ".code-intelligence/fuzz_targets/JsonSanitizerFuzzer.java"
     }
