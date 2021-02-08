@@ -39,8 +39,8 @@ public class JsonSanitizerFuzzer {
         if (validJson.contains("<script>") || validJson.contains("</script>") || validJson.contains("<script") || validJson.contains("<!--") || validJson.contains("]]>")) {
             System.out.println(validJson);
             //hotfix: ci-fuzz can not handle the type of finding, so throw an exeption instead of returning true
-            throw new RuntimeException("Finding: script tag");
-            //return true;
+            //throw new RuntimeException("Finding: script tag");
+            return true;
         }
         return false;
     }
