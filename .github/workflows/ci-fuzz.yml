@@ -1,0 +1,55 @@
+name: Code Intelligence Fuzzing
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  PROJECT_NAME: json-sanitizer
+  FUZZING_SERVER_ADDRESS: grpc-api.code-intelligence.com:443
+  DASHBOARD_ADDRESS: https://app.code-intelligence.com 
+
+jobs:
+  fuzz_JsonSanitizerFuzzer:
+    runs-on: ubuntu-latest
+    steps:
+      - id: start-fuzzing
+        name: Build and Instrument
+        uses: CodeIntelligenceTesting/github-actions/start-fuzzing@master
+        with:
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
+          project: ${{ env.PROJECT_NAME }}
+          test_collection: "JsonSanitizerFuzzer"
+          git_reference: ${{ github.sha }}
+          fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}          
+      - id: monitor-fuzzing
+        name: Fuzzing
+        uses: CodeIntelligenceTesting/github-actions/monitor-fuzzing@master
+        with:
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
+          project: ${{ env.PROJECT_NAME }}
+          test_collection_run: ${{ steps.start-fuzzing.outputs.test_collection_run_display_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_number: ${{ github.event.pull_request.number }}
+          owner: ${{ github.event.repository.owner.login }}
+          repository: ${{ github.event.repository.name }}
+          fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}
+          dashboard_address: ${{ env.DASHBOARD_ADDRESS }}
+      - id: report-coverage
+        name: Report Coverage
+        uses: CodeIntelligenceTesting/github-actions/report-coverage@master
+        if: ${{ github.event_name == 'pull_request' && (success() || failure()) }}
+        with:
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
+          project: ${{ env.PROJECT_NAME }}
+          test_collection_run: ${{ steps.start-fuzzing.outputs.test_collection_run_resource_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_number: ${{ github.event.pull_request.number }}
+          owner: ${{ github.event.repository.owner.login }}
+          repository: ${{ github.event.repository.name }}
+          git_reference: ${{ github.sha }}
+          fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}
+          dashboard_address: ${{ env.DASHBOARD_ADDRESS }}
+          
