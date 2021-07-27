@@ -66,7 +66,7 @@ public class JsonSanitizerFuzzer {
                return false;
            throw e;
        }
-        // 5. If XSS tags that should be sanitzed are found, there is a bypass available
+        // 5. If the validJson string contains XSS tags that should be sanitzed, a bypass has been found
         if (validJson.contains("<script>") || validJson.contains("</script>") || validJson.contains("<script") || validJson.contains("<!--") || validJson.contains("]]>")) {
             System.out.println(validJson);
             //hotfix: ci-fuzz can not handle the type of finding, so throw an exeption instead of returning true
