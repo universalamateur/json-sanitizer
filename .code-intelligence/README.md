@@ -2,10 +2,10 @@
 
 ## What is the json-sanitizer?
 
-The json-sanitizer is a tool that is able to convert JSON-like content to 
+The json-sanitizer is a tool that is able to convert JSON-like content to
 well-formed JSON that satisfies any well-known parser. It coerce minor mistakes
 in encoding and make it easier to embed any JSON in HTML and XML. In addition,
-it offers security features to sanitize some script tags that could result in a 
+it offers security features to sanitize some script tags that could result in a
 Cross-site Scripting (XSS) attack.
 
 ## What is fuzzing (in a nutshell)?
@@ -15,17 +15,18 @@ to a software-under-test (SUT), derives new inputs from the behaviour of the
 program (i.e. how inputs are processed), and monitors the SUT for bugs.
 
 As json-sanitizer is written mostly in Java, we are particularly concerned with
-out of memories, infinite loops and logic bugs. Out of memories and infinite loops 
-can be exploited to achieve a denial of service of the application. Logic bugs 
-could enable to bypass the XSS tag sanitization of the json-sanitizer and result
-in a XSS attack. 
+out of memories, infinite loops and logic bugs. Out of memories and infinite
+loops can be exploited to achieve a denial of service of the application. Logic
+bugs could enable to bypass the XSS tag sanitization of the json-sanitizer and
+result in a XSS attack.
 
 ## Fuzzing where raw data is handled
 
 Fuzzing is most efficient where raw data is parsed, because in this case no
-assumptions can be made about the format of the input. The json-sanitizer allows you to pass
-arbitrary data to a sanatize function (called `JsonSanitizer.sanitize`). After sanitization the
-result is usually passed to a parser function (called `JsonParser.parse`) 
+assumptions can be made about the format of the input. The json-sanitizer allows
+you to pass arbitrary data to a sanatize function (called
+`JsonSanitizer.sanitize`). After sanitization the result is usually passed to a
+parser function (called `JsonParser.parse`)
 
 The most universal example of this type of fuzz test can be found in
 [`.code-intelligence/fuzz_targets/JsonSanitizerFuzzer.java`](https://github.com/ci-fuzz/json-sanitizer/blob/master/.code-intelligence/fuzz_targets/JsonSanitizerFuzzer.java).
@@ -89,4 +90,4 @@ coverage metrics such as newly-covered lines, statements or even values in an
 expression.
 
 The rule of thumb for a good fuzz test is that the format of the inputs should
-be roughly the same. 
+be roughly the same.

@@ -1,0 +1,6 @@
+description: >
+  The json-sanitizer is a tool that is able to convert JSON-like content to
+  well-formed JSON that satisfies any well-known parser. It coerce minor
+  mistakes in encoding and make it easier to embed any JSON in HTML and XML. In
+  addition, it offers security features to sanitize some script tags that could
+  result in a Cross-site Scripting (XSS) attack.
