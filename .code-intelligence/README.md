@@ -28,54 +28,37 @@ arbitrary data to a sanatize function (called `JsonSanitizer.sanitize`). After s
 result is usually passed to a parser function (called `JsonParser.parse`) 
 
 The most universal example of this type of fuzz test can be found in
-[`.code-intelligence/fuzz_targets/JsonSanitizerFuzzer.java`](https://github.com/ci-fuzz/json-sanitizer/blob/master/.code-intelligence/fuzz_targets/JsonSanitizerFuzzer.java).
+[`.code-intelligence/fuzz_targets/JsonSanitizerXSSFuzzer.java`](https://github.com/ci-fuzz/json-sanitizer/blob/master/.code-intelligence/fuzz_targets/JsonSanitizerXSSFuzzer.java).
 Let me walk you through the heart of the fuzz test:
 
 ```Java
-public class JsonSanitizerFuzzer {
-    // 1. The fuzzer calls fuzzerTestOneInput with pseudo-random byte[] input.
-    public static boolean fuzzerTestOneInput(byte[] input) {
-        String string;
-        try {
-            // 2. A string is created and is fed with the pseudo-random input
-            string = new String(input, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            return false;
-        }
-        String validJson;
-        try {
-            // 3. The pseudo-random string is sanitized
-            validJson = JsonSanitizer.sanitize(string, 60);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Nesting depth"))
-                return false;
-            throw e;
-        } catch (IndexOutOfBoundsException e) {
-            if (e.getStackTrace()[3].getMethodName().equals("elide") || e.getStackTrace()[3].getMethodName().equals("sanitize"))
-                return false;
-            throw e;
-        } catch (AssertionError e) {
-            return false;
-        }
-       // 4. The sanitized string is parsed
-       JsonParser parser = new JsonParser();
-       try {
-           parser.parse(validJson);
-       } catch(JsonSyntaxException e) {
-           if (e.getMessage() != null && e.getMessage().contains("Invalid escape sequence"))
-               return false;
-           throw e;
-       }
-        // 5. If the validJson string contains XSS tags that should be sanitzed, a bypass has been found
-        if (validJson.contains("<script>") || validJson.contains("</script>") || validJson.contains("<script") || validJson.contains("<!--") || validJson.contains("]]>")) {
-            System.out.println(validJson);
-            //hotfix: ci-fuzz can not handle the type of finding, so throw an exeption instead of returning true
-            //throw new RuntimeException("Finding: script tag");
-            return true;
-        }
-        return false;
+public class JsonSanitizerXSSFuzzer {
+  // 1. The fuzzer calls fuzzerTestOneInput continuously generating new
+  // data in each iteration to maximize code coverage and explore more
+  // code.
+  public static void fuzzerTestOneInput(FuzzedDataProvider data) {
+    // 2. Interpret fuzzer-generated data as String since this is the type
+    // expected by the method we want to test
+    String input = data.consumeRemainingAsString();
+    String safeJSON;
+    try {
+      // 3. Call the method we want to test with the fuzzer-generated input
+      safeJSON = JsonSanitizer.sanitize(input, 10);
+    } catch (Exception e) {
+      // 4. Ignore all exception since we are here interested in checking if the
+      // sanitized output could contain a closing script tag. This property is claimed
+      // preserved by the library
+      return;
     }
+
+    // 5. Check if the sanitized input can contain the closing script tag. If this is the 
+    // case, we report a security issue with high severity since this would result in a XSS 
+    // vulnerability.
+    assert !safeJSON.contains("</script")
+      : new FuzzerSecurityIssueHigh("Output contains </script");
+  }
 }
+
 ```
 
 If you haven't done already, you can now explore what the fuzzer found when
