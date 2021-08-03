@@ -25,8 +25,8 @@ fuzz_tests:
 
 ## The sanitizers to use for the fuzz tests
 ## By default, only address sanitizer is used.
-sanitizers:
-  - address
+# sanitizers:
+#   - address
 
 ## The fuzzing engines to use for the fuzz tests
 ## By default, only libfuzzer is used. Note that because Java and Go
@@ -44,3 +44,9 @@ max_runtime: "30m0s"
 
 ## If true, do not initialize the seed corpus of the fuzz tests.
 #no_initial_corpus: false
+description: >
+  The json-sanitizer is a tool that is able to convert JSON-like content to
+  well-formed JSON that satisfies any well-known parser. It coerce minor
+  mistakes in encoding and make it easier to embed any JSON in HTML and XML. In
+  addition, it offers security features to sanitize some script tags that could
+  result in a Cross-site Scripting (XSS) attack.
