@@ -7,7 +7,6 @@ on:
     branches: [ master ]
 
 env:
-  PROJECT_NAME: projects/organizations_89d295318b3fded6_json-sanitizer-7eff5208
   FUZZING_SERVER_ADDRESS: app.code-intelligence.com:6773
   DASHBOARD_ADDRESS: https://app.code-intelligence.com 
 
@@ -20,10 +19,9 @@ jobs:
         uses: CodeIntelligenceTesting/github-actions/start-fuzzing@master
         with:
           ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
-          project: ${{ env.PROJECT_NAME }}
-          test_collection: "JsonSanitizerFuzzer"
+          project: "projects/organizations_89d295318b3fded6_json-sanitizer-7eff5208"
           git_reference: ${{ github.sha }}
-          fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}          
+          fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}     
       - id: monitor-fuzzing
         name: Fuzzing
         uses: CodeIntelligenceTesting/github-actions/monitor-fuzzing@master
