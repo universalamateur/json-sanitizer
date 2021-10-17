@@ -8,7 +8,7 @@ on:
 
 env:
   PROJECT_NAME: json-sanitizer
-  FUZZING_SERVER_ADDRESS: grpc-api.code-intelligence.com:443
+  FUZZING_SERVER_ADDRESS: app.code-intelligence.com:6773
   DASHBOARD_ADDRESS: https://app.code-intelligence.com 
 
 jobs:
