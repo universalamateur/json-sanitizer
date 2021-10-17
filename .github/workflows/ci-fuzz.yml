@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  PROJECT_NAME: json-sanitizer
+  PROJECT_NAME: projects/organizations_89d295318b3fded6_json-sanitizer-7eff5208
   FUZZING_SERVER_ADDRESS: app.code-intelligence.com:6773
   DASHBOARD_ADDRESS: https://app.code-intelligence.com 
 
