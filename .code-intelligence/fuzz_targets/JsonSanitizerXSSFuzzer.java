@@ -42,6 +42,6 @@ public class JsonSanitizerXSSFuzzer {
     // case, we report a security issue with high severity since this would result in a XSS 
     // vulnerability.
     assert !safeJSON.contains("</script")
-      : new FuzzerSecurityIssueHigh("Output contains </script");
+      : new FuzzerSecurityIssueHigh("XSS Injection: Output contains </script");
   }
 }
