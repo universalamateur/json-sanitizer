@@ -8,9 +8,7 @@
 description: >
   JSON-Sanitizer is a tool that is able to convert JSON-like content to
   well-formed JSON that satisfies any well-known parser. It corrects minor mistakes
-  in encoding and makes it easier to embed any JSON in HTML and XML. In addition,
-  it offers security features to sanitize some script tags that could result in a
-  Cross-site Scripting (XSS) attack.
+  in encoding and makes it easier to embed any JSON in HTML and XML.
 
 ## The fuzz targets are built and run in Docker containers. This setting
 ## allows you to specify the Docker image that should be used for
