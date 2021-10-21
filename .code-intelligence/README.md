@@ -8,19 +8,15 @@ in encoding and makes it easier to embed any JSON in HTML and XML. In addition,
 it offers security features to sanitize some script tags that could result in a
 Cross-site Scripting (XSS) attack.
 
-## What is fuzzing (in a nutshell)?
+## The problem
 
-Fuzzing is a dynamic code analysis technique that supplies pseudo-random inputs
-to a software-under-test (SUT), derives new inputs from the behaviour of the
-program (i.e. how inputs are processed), and monitors the SUT for bugs.
+The problem with writing sanitizers is that in order to be correct, it has to handle
+a lot of edge cases in stripping out harmful bits of the input. Failure to do so results
+in an adversary being able to inject unwanted content into the trusted output, i.e. in
+the case of an XSS injection, where the attacker can inject JavaScript into something
+that will be rendered as HTML by the browser.
 
-## How can fuzzing improve this application?
-
-As JSON-Sanitizer is written mostly in Java, we are particularly concerned with
-out of memories, infinite loops and logic bugs. Out of memories and infinite
-loops can be exploited to achieve a denial of service of the application. Logic
-bugs could enable to bypass the XSS tag sanitization of the JSON-Sanitizer and
-result in a XSS attack. 
+## The solution
 
 Luckily, with fuzz testing, there is an effective way to find these kind of bugs 
 and other unforseen edge cases. Instead of testing the program with individual
@@ -28,7 +24,15 @@ specific inputs, the fuzzer generates thousands of them per second while trying
 to explore different execution paths and maximizing the code coverage in the
 program under test.
 
-## Fuzzing where raw data is handled
+As JSON-Sanitizer is written mostly in Java, we are particularly concerned with
+out of memories, infinite loops and logic bugs. Out of memories and infinite
+loops can be exploited to achieve a denial of service of the application. Logic
+bugs could enable to bypass the XSS tag sanitization of the JSON-Sanitizer and
+result in a XSS attack.
+
+## How fuzz testing is set up
+
+### Fuzzing where raw data is handled
 
 Fuzzing is most efficient where raw data is parsed, because in this case no
 assumptions can be made about the format of the input. The JSON-Sanitizer allows
@@ -73,14 +77,14 @@ public class JsonSanitizerXSSFuzzer {
 If you haven't already, you can now explore what the fuzzer found when
 running this fuzz test.
 
-## A note regarding corpus data (and why there are more fuzz tests to explore)
+### A note regarding corpus data (and why there are more fuzz tests to explore)
 
 For each fuzz test that we write, a corpus of interesting inputs is built up.
 Over time, the fuzzer will add more and more inputs to this corpus, based
 coverage metrics such as newly-covered lines, statements or even values in an
 expression.
 
-## Fuzzing in CI/CD
+### Fuzzing in CI/CD
 CI Fuzz allows you to configure your pipeline to automatically trigger the run of fuzz tests.
 Most of the fuzzing runs that you can inspect here were triggered automatically (e.g. by pull or merge request on the GitHub project).
 As you can see in this [`https://github.com/ci-fuzz/JSON-Sanitizer/pull/1`](https://github.com/ci-fuzz/JSON-Sanitizer/pull/1)) the fuzzing results are automatically commented by the github-action and developers
