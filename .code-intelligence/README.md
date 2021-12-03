@@ -87,7 +87,7 @@ expression.
 ### Fuzzing in CI/CD
 CI Fuzz allows you to configure your pipeline to automatically trigger the run of fuzz tests.
 Most of the fuzzing runs that you can inspect here were triggered automatically (e.g. by pull or merge request on the GitHub project).
-As you can see in this [`pull request`](https://github.com/ci-fuzz/JSON-Sanitizer/pull/1)) the fuzzing results are automatically commented by the github-action and developers
+As you can see in this [`pull request`](https://github.com/ci-fuzz/JSON-Sanitizer/pull/1) the fuzzing results are automatically commented by the github-action and developers
 can consume the results by clicking on "View Finding" which will lead them directly to the bug description with all the details
 that CI Fuzz provides (input that caused the bug, stack trace, bug location).
 With this configuration comes the hidden strength of fuzzing into play:  
