@@ -6,8 +6,7 @@
 ## by removing the "#".
 
 description: >
-  Learn how to write a fuzz tests that aims to inject a script tag into
-  the response of JsonSanitizer.sanitize, resulting in an XSS injection.
+  The Json-Sanitizer is supposed to be especially reliable and secure. Click on this project to find out how our fuzzer found a weakness even there.
 
 ## The fuzz targets are built and run in Docker containers. This setting
 ## allows you to specify the Docker image that should be used for
