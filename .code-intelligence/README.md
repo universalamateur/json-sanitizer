@@ -8,6 +8,8 @@ in encoding and makes it easier to embed any JSON in HTML and XML. In addition,
 it offers security features to sanitize some script tags that could result in a
 Cross-site Scripting (XSS) attack.
 
+For more info on JSON-Sanitizer click [here](https://owasp.org/www-project-json-sanitizer/migrated_content).
+
 ## The problem
 
 The problem with writing sanitizers is that in order to be correct, it has to handle
