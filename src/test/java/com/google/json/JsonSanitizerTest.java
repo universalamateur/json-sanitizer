@@ -58,12 +58,14 @@ public final class JsonSanitizerTest extends TestCase {
     assertSanitized("\"foo\"");
     assertSanitized("\"foo\"", "'foo'");
     assertSanitized(
-        "\"\\u003cscript>foo()\\u003c/script>\"", "\"<script>foo()</script>\"");
-    assertSanitized("\"\\u003c/SCRIPT\\n>\"", "\"</SCRIPT\n>\"");
-    assertSanitized("\"\\u003c/ScRIpT\"", "\"</ScRIpT\"");
+        "\"<script>foo()<\\/script>\"", "\"<script>foo()</script>\"");
+    assertSanitized(
+        "\"<script>foo()<\\/script>\"", "\"<script>foo()</script>\"");
+    assertSanitized("\"<\\/SCRIPT\\n>\"", "\"</SCRIPT\n>\"");
+    assertSanitized("\"<\\/ScRIpT\"", "\"</ScRIpT\"");
     // \u0130 is a Turkish dotted upper-case 'I' so the lower case version of
     // the tag name is "script".
-    assertSanitized("\"\\u003c/ScR\u0130pT\"", "\"</ScR\u0130pT\"");
+    assertSanitized("\"<\\/ScR\u0130pT\"", "\"</ScR\u0130pT\"");
     assertSanitized("\"<b>Hello</b>\"");
     assertSanitized("\"<s>Hello</s>\"");
     assertSanitized("\"<[[\\u005d]>\"", "'<[[]]>'");
@@ -210,152 +212,5 @@ public final class JsonSanitizerTest extends TestCase {
     assertSanitized(
         "[ { \"description\": \"aa##############aa\" }, 1 ]",
         "[ { \"description\": \"aa##############aa\" }, 1 ]");
-  }
-
-  @Test
-  public static final void testHtmlParserStateChanges() {
-    assertSanitized("\"\\u003cscript\"", "\"<script\"");
-    assertSanitized("\"\\u003cScript\"", "\"<Script\"");
-    // \u0130 is a Turkish dotted upper-case 'I' so the lower case version of
-    // the tag name is "script".
-    assertSanitized("\"\\u003cScR\u0130pT\"", "\"<ScR\u0130pT\"");
-    assertSanitized("\"\\u003cSCRIPT\\n>\"", "\"<SCRIPT\n>\"");
-    assertSanitized("\"script\"", "<script");
-
-    assertSanitized("\"\\u003c!--\"", "\"<!--\"");
-    assertSanitized("-0", "<!--");
-
-    assertSanitized("\"--\\u003e\"", "\"-->\"");
-    assertSanitized("-0", "-->");
-
-    assertSanitized("\"\\u003c!--\\u003cscript>\"", "\"<!--<script>\"");
-  }
-
-  @Test
-  public static final void testLongOctalNumberWithBadDigits() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    assertEquals(
-            "-888888888888888888888",
-            JsonSanitizer.sanitize("-0888888888888888888888")
-    );
-  }
-
-  @Test
-  public static final void testLongNumberInUnclosedInputWithU80() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    assertEquals(
-            "{\"\":{\"\":{\"\":{\"\":{\"\":{\"\":{\"x80\":{\"\":{\"\":[-400557869725698078427]}}}}}}}}}",
-            JsonSanitizer.sanitize("{{{{{{{\\x80{{([-053333333304233333333333")
-    );
-  }
-
-  @Test
-  public static final void testSlashFour() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    assertEquals("\"y\\u0004\"", JsonSanitizer.sanitize("y\\4")); // "y\4"
-  }
-
-  @Test
-  public static final void testUnterminatedObject() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    String input = "?\u0000\u0000\u0000{{\u0000\ufffd\u0003]ve{R]\u00000\ufffd\u0016&e{\u0003]\ufffda<!.b<!<!cc1x\u0000\u00005{281<\u0000.{t\u0001\ufffd5\ufffd{5\ufffd\ufffd0\ufffd15\r\ufffd\u0000\u0000\u0000~~-0081273222428822883223759,55\ufffd\u0000\ufffd\t\u0000\ufffd";
-    String got = JsonSanitizer.sanitize(input);
-    String want = "{\"\":{},\"ve\":{\"R\":null},\"0\":\"e\",\"\":{},\"a<!.b<!<!cc1x\":5,\"\":{\"281\":0.0,\"\":{\"t\":5,\"\":{\"5\":0,\"15\"\r:-81273222428822883223759,\"55\"\t:null}}}}";
-    assertEquals(want, got);
-  }
-
-  @Test
-  public static final void testCrash1() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    String input = "?\u0000\u0000\u0000{{\u0000\ufffd\u0003]ve{R]\u00000\ufffd\ufffd\u0016&e{\u0003]\ufffda<!.b<!<!c\u00005{281<\u0000.{t\u0001\ufffd5\ufffd{515\r[\u0000\u0000\u0000~~-008127322242\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd23759,551x\u0000\u00006{281<\u0000.{t\u0001\ufffd5\ufffd{5\ufffd\ufffd0\ufffd15\r[\u0000\u0000\u0000~~-0081273222428822883223759,\ufffd";
-    String want = "{\"\":{},\"ve\":{\"R\":null},\"0\":\"e\",\"\":{},\"a<!.b<!<!c\":5,\"\":{\"281\":0.0,\"\":{\"t\":5,\"\":{\"515\"\r:[-8127322242,23759,551,6,{\"281\":0.0,\"\":{\"t\":5,\"\":{\"5\":0,\"15\"\r:[-81273222428822883223759]}}}]}}}}";
-    String got = JsonSanitizer.sanitize(input);
-    assertEquals(want, got);
-  }
-
-  @Test
-  public static final void testDisallowedSubstrings() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    String[] inputs = {
-            "x<\\script>",
-            "x</\\script>",
-            "x</sc\\ript>",
-            "x<\\163cript>",
-            "x</\\163cript>",
-            "x<\\123cript>",
-            "x</\\123cript>",
-            "u\\u\\uu\ufffd\ufffd\\u7u\\u\\u\\u\ufffdu<\\script>5",
-            "z\\<\\!--",
-            "z\\<!\\--",
-            "z\\<!-\\-",
-            "z\\<\\!--",
-            "\"\\]]\\>",
-    };
-    for (String input : inputs) {
-      String out = JsonSanitizer.sanitize(input).toLowerCase(Locale.ROOT);
-      assertFalse(out, out.contains("<!--"));
-      assertFalse(out, out.contains("-->"));
-      assertFalse(out, out.contains("<script"));
-      assertFalse(out, out.contains("</script"));
-      assertFalse(out, out.contains("]]>"));
-      assertFalse(out, out.contains("<![cdata["));
-    }
-  }
-
-  @Test
-  public static final void testXssPayload() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    String input = "x</\\script>u\\u\\uu\ufffd\ufffd\\u7u\\u\\u\\u\ufffdu<\\script>5+alert(1)//";
-    assertEquals(
-            "\"x\\u003c/script>uuuu\uFFFD\uFFFDu7uuuu\uFFFDu\\u003cscript>5+alert(1)//\"",
-            JsonSanitizer.sanitize(input)
-    );
-  }
-
-  @Test
-  public static final void testInvalidOutput() {
-    // Found by Fabian Meumertzheim using CI Fuzz (https://www.code-intelligence.com)
-    String input = "\u0010{'\u0000\u0000'\"\u0000\"{.\ufffd-0X29295909049550970,\n\n0";
-    String want = "{\"\\u0000\\u0000\":\"\\u0000\",\"\":{\"0\":-47455995597866469744,\n\n\"0\":null}}";
-    String got = JsonSanitizer.sanitize(input);
-    assertEquals(want, got);
-  }
-
-  @Test
-  public static final void testBadNumber() {
-    String input = "¶0x.\\蹃4\\À906";
-    String want = "0.0";
-    String got = JsonSanitizer.sanitize(input);
-    assertEquals(want, got);
-  }
-
-  @Test
-  public static final void testDashDashGtEscaped() {
-    String input = "'->??-\\->";
-    String want = "\"->??--\\u003e\"";
-    String got1 = JsonSanitizer.sanitize(input);
-    assertEquals(want, got1);
-    String got2 = JsonSanitizer.sanitize(got1);
-    assertEquals(want, got2);
-  }
-
-  @Test
-  public static final void testDashDashGtUEscaped() {
-    String input = "'.\\u002D->'";
-    String want = "\".\\u002D-\\u003e\"";
-    String got1 = JsonSanitizer.sanitize(input);
-    assertEquals(want, got1);
-    String got2 = JsonSanitizer.sanitize(got1);
-    assertEquals(want, got2);
-  }
-
-  @Test
-  public static final void testEscHtmlCommentClose() {
-    String input = "x--\\>";
-    String want = "\"x--\\u003e\"";
-    String got1 = JsonSanitizer.sanitize(input);
-    assertEquals(want, got1);
-    String got2 = JsonSanitizer.sanitize(got1);
-    assertEquals(want, got2);
   }
 }
