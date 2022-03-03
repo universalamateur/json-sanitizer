@@ -544,16 +544,64 @@ public final class JsonSanitizer {
             }
           }
           break;
-        // Embedding.  Disallow </script and ]]> in string literals so that
-        // the output can be embedded in HTML script elements and in XML CDATA
-        // sections.
-        case '/':
-          // Don't over escape.  Many JSON bodies contain innocuous HTML
-          // that can be safely embedded.
-          if (i > start && i + 2 < end && '<' == jsonish.charAt(i - 1)
-              && 's' == (jsonish.charAt(i + 1) | 32)
-              && 'c' == (jsonish.charAt(i + 2) | 32)) {
-            insert(i, '\\');
+        // Embedding. Disallow <script, </script, <!--, --> and ]]> in string
+        // literals so that the output can be embedded in HTML script elements
+        // and in XML CDATA sections without affecting the parser state.
+        // References:
+        // https://www.w3.org/TR/html53/semantics-scripting.html#restrictions-for-contents-of-script-elements
+        // https://www.w3.org/TR/html53/syntax.html#script-data-escaped-state
+        // https://www.w3.org/TR/html53/syntax.html#script-data-double-escaped-state
+        // https://www.w3.org/TR/xml/#sec-cdata-sect
+        case '<': {
+          // Disallow <!--, which lets the HTML parser switch into the "script
+          // data escaped" state.
+          // Disallow <script, which followed by various characters lets the
+          // HTML parser switch into or out of the "script data double escaped"
+          // state.
+          // Disallow </script, which ends a script block.
+          if (i + 3 >= end) {
+            break;
+          }
+          int la = i + 1;
+          int c1AndDelta = unescapedChar(jsonish, la);
+          char c1 = (char) c1AndDelta;
+          la += c1AndDelta >>> 16;
+          long c2AndDelta = unescapedChar(jsonish, la);
+          char c2 = (char) c2AndDelta;
+          la += c2AndDelta >>> 16;
+          long c3AndEnd = unescapedChar(jsonish, la);
+          char c3 = (char) c3AndEnd;
+          char lc1 = (char) (c1 | 32);
+          char lc2 = (char) (c2 | 32);
+          char lc3 = (char) (c3 | 32);
+          if (
+                  (c1 == '!' && c2 == '-' && c3 == '-') ||
+                          (lc1 == 's' && lc2 == 'c' && lc3 == 'r') ||
+                          (c1 == '/' && lc2 == 's' && lc3 == 'c')
+          ) {
+            replace(i, i + 1, "\\u003c"); // Escaped <
+          }
+          break;
+        }
+        case '>':
+          // Disallow -->, which lets the HTML parser switch out of the "script
+          // data escaped" or "script data double escaped" state.
+          if ((i - 2) >= start) {
+            int lb = i - 1;
+            if ((runSlashPreceding(jsonish, lb) & 1) == 1) {
+              // If the '>' is escaped backup over its slash.
+              lb -= 1;
+            }
+            int cm1AndDelta = unescapedCharRev(jsonish, lb);
+            char cm1 = (char) cm1AndDelta;
+            if ('-' == cm1) {
+                lb -= cm1AndDelta >>> 16;
+                int cm2AndDelta = unescapedCharRev(jsonish, lb);
+                char cm2 = (char) cm2AndDelta;
+                if ('-' == cm2) {
+                    replace(i, i + 1, "\\u003e"); // Escaped >
+                }
+            }
           }
           break;
         case ']':
